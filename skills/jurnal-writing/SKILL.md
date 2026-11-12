@@ -33,27 +33,40 @@ dokumen Word, memakai `smart_write.py` (skill `office-word-mcp`) + hardening
 ### 2. Struktur default (kalau tanpa template)
 
 ```bash
-VENV=/path/ke/repo-office/.venv-mcp/bin/python
-F=Artikel.docx
+V=/path/ke/repo-office/.venv-mcp/bin/python
+# Artikel sudah TERBUKA di Word; dia satu-satunya target (tidak ada buka/tutup)
 
-$VENV smart_write.py heading "$F" "JUDUL ARTIKEL MAKSIMAL 14 KATA" --level 1 --watch
-$VENV smart_write.py append "$F" "Nama Penulis1, Nama Penulis2" "Afiliasi, email korespondensi"
-$VENV smart_write.py heading "$F" "ABSTRAK" --level 1
-$VENV smart_write.py append "$F" "Satu paragraf 150–250 kata: masalah, tujuan, metode, hasil utama + angka, simpulan. Diakhiri Kata kunci: 3–5 frasa."
-$VENV smart_write.py heading "$F" "ABSTRACT" --level 1
-$VENV smart_write.py append "$F" "English version of the abstract, same structure."
-$VENV smart_write.py heading "$F" "1. PENDAHULUAN" --level 1
-$VENV smart_write.py append "$F" "Gap penelitian → rumusan → tujuan → kontribusi. Setiap klaim penting bersitasi."
-$VENV smart_write.py heading "$F" "2. METODE" --level 1
-$VENV smart_write.py append "$F" "Desain, data/sampel, instrumen, analisis — cukup detail untuk direplikasi."
-$VENV smart_write.py heading "$F" "3. HASIL DAN PEMBAHASAN" --level 1
-$VENV smart_write.py append "$F" "Sajikan temuan objektif, lalu bahas makna + bandingkan dengan studi sebelumnya."
-$VENV smart_write.py table "$F" 3 3 '[["Metrik","Nilai","Keterangan"],["Akurasi","92,1%","..."],["...","...","..."]]'
-$VENV smart_write.py heading "$F" "4. KESIMPULAN" --level 1
-$VENV smart_write.py append "$F" "Jawab tujuan, sebut keterbatasan, arah riset lanjut. Tanpa referensi baru."
-$VENV smart_write.py heading "$F" "DAFTAR PUSTAKA" --level 1
-$VENV smart_write.py append "$F" "Penulis. (Tahun). Judul. Jurnal, volume(halaman)."
+$V smart_write.py heading "JUDUL ARTIKEL MAKSIMAL 14 KATA" --level 1 --after "<baris terakhir template>"
+$V smart_write.py append "Nama Penulis1, Nama Penulis2" "Afiliasi, email korespondensi" --after "JUDUL ARTIKEL MAKSIMAL 14 KATA"
+$V smart_write.py heading "ABSTRAK" --level 1 --after "Afiliasi, email korespondensi"
+$V smart_write.py append "Satu paragraf 150-250 kata: masalah, tujuan, metode, hasil utama + angka, simpulan. Diakhiri Kata kunci: 3-5 frasa." --after "ABSTRAK"
+$V smart_write.py heading "ABSTRACT" --level 1 --after "Kata kunci:"
+$V smart_write.py append "English version of the abstract, same structure." --after "ABSTRACT"
+$V smart_write.py heading "1. PENDAHULUAN" --level 1 --after "English version of the abstract"
+$V smart_write.py append "Gap penelitian -> rumusan -> tujuan -> kontribusi. Setiap klaim penting bersitasi." --after "1. PENDAHULUAN"
+$V smart_write.py heading "2. METODE" --level 1 --after "Setiap klaim penting bersitasi"
+$V smart_write.py append "Desain, data/sampel, instrumen, analisis - cukup detail untuk direplikasi." --after "2. METODE"
+$V smart_write.py heading "3. HASIL DAN PEMBAHASAN" --level 1 --after "cukup detail untuk direplikasi"
+$V smart_write.py append "Sajikan temuan objektif, lalu bahas makna + bandingkan dengan studi sebelumnya." --after "3. HASIL DAN PEMBAHASAN"
+$V smart_write.py heading "4. KESIMPULAN" --level 1 --after "bandingkan dengan studi sebelumnya"
+$V smart_write.py append "Jawab tujuan, sebut keterbatasan, arah riset lanjut. Tanpa referensi baru." --after "4. KESIMPULAN"
+$V smart_write.py heading "DAFTAR PUSTAKA" --level 1 --after "Tanpa referensi baru"
+$V smart_write.py append "Penulis. (Tahun). Judul. Jurnal, volume(halaman)." --after "DAFTAR PUSTAKA" --style "Daftar Paragraf1"
+$V smart_write.py toc
+$V smart_write.py save
 ```
+
+Aturan CLI ini:
+
+- **Setiap sisip butuh `--after`** (teks jangkar = paragraf yang sudah ada).
+  Jangan mengandalkan "akhir dokumen": `count characters` Word berhenti di
+  akhir section, bukan akhir berkas (lihat `docs/REALTIME-WORD.md`).
+- Jangan pakai dokumen uji terpisah. Kalau artikel belum ada, buat file kosong
+  dulu (MCP `create_document` / python-docx), buka di Word, baru jalankan
+  perintah di atas dengan jangkar baris pertama.
+- Tabel dan gambar belum bisa live: sisipkan lewat pipeline OOXML saat Word
+  ditutup, atau MCP tool yang menulis file; sesudah itu lanjut live lagi.
+- `delete` hanya menghapus paragraf yang **diawali** teks yang dicari.
 
 Kaedah isi:
 

@@ -1,6 +1,6 @@
 ---
 name: skripsi-writing
-description: Write Indonesian thesis/skripsi documents (BAB I–V) with proper academic structure, EYD/PUEBI language, and Word formatting. Use when the user mentions skripsi, thesis, BAB, abstrak, latar belakang, or writing academic final-project documents.
+description: Write and repair Indonesian thesis/skripsi documents (BAB I–V) with academic structure, EYD/PUEBI language, campus template formatting, realtime Word editing, table/TOC fixes, and render verification. Use when the user mentions skripsi, thesis, BAB, abstrak, latar belakang, pedoman format, or academic final-project documents.
 license: MIT
 compatibility: opencode
 metadata:
@@ -8,101 +8,178 @@ metadata:
   format: docx
 ---
 
-# SKILL: Penulisan Skripsi (Indonesia)
+# SKILL: Penulisan & Perbaikan Skripsi (Indonesia)
 
-Skill menulis dokumen skripsi berbahasa Indonesia dari nol sampai siap revisi,
-memakai `smart_write.py` (lihat skill `office-word-mcp`) + tooling repo
-**office-skripsi** untuk hardening format.
+Dua pekerjaan berbeda, dua alat berbeda:
 
----
+| Pekerjaan | Alat | Word |
+|-----------|------|------|
+| Menulis/mengubah isi | `python-docx` + `open ... revert true` | **terbuka, sekali** |
+| Menyeragamkan format, tabel, section, field | pipeline OOXML | **tertutup** |
 
-## 0. Alur standar
-
-```
-1. Tanya struktur  →  2. Tulis live per bab  →  3. Hardening format  →  4. Verifikasi render
-```
-
-### 1. Tanya struktur dulu (jangan asal tulis)
-
-Minimal sebelum menulis:
-
-- Judul, nama, NIM, prodi, fakultas, universitas, tahun
-- Penomoran bab (`BAB I` / `Bab 1`), sub-bab (`1.1`), judul KAPITAL / Title Case
-- Topik tiap bab + data/angka yang harus muncul (jangan mengarang data penelitian!)
-- Pedoman kampus (font, spasi, margin) — kalau tidak ada, pakai default dan
-  **tandai sebagai asumsi**
-
-### 2. Tulis per bab dengan smart_write
-
-```bash
-VENV=/path/ke/repo-office/.venv-mcp/bin/python
-F=Skripsi.docx
-
-$VENV smart_write.py heading "$F" "JUDUL SKRIPSI" --level 1 --watch
-$VENV smart_write.py append "$F" "SKRIPSI" --style "Heading 2"
-$VENV smart_write.py heading "$F" "ABSTRAK" --level 1
-$VENV smart_write.py append "$F" "Paragraf abstrak: tujuan, metode, hasil + angka, simpulan. Diakhiri Kata kunci: ..." --delay 1.5
-$VENV smart_write.py heading "$F" "BAB I PENDAHULUAN" --level 1
-$VENV smart_write.py append "$F" "1.1 Latar Belakang" --style "Heading 2"
-$VENV smart_write.py append "$F" "Paragraf 1: konteks umum..." --delay 1.5
-# ... dst. per sub-bab: 1.2 Rumusan Masalah, 1.3 Tujuan, 1.4 Manfaat
-# BAB II Tinjauan Pustaka, BAB III Metode (+ tabel via smart_write table),
-# BAB IV Hasil & Pembahasan, BAB V Penutup, DAFTAR PUSTAKA
-```
-
-Struktur isi per bab (ringkas):
-
-| Bab | Wajib ada |
-|-----|-----------|
-| ABSTRAK | Tujuan, metode + sampel, hasil + angka, simpulan, kata kunci |
-| BAB I | Latar belakang (umum→khusus→masalah), rumusan, tujuan, manfaat teoretis+praktis |
-| BAB II | Definisi konsep, penelitian terdahulu, kerangka berpikir/hipotesis |
-| BAB III | Desain, populasi+sampel, instrumen+uji validitas/reliabilitas, teknik analisis, jadwal (tabel) |
-| BAB IV | Gambaran responden, hasil (angka/persamaan), pembahasan vs teori |
-| BAB V | Simpulan (jawab rumusan), saran (praktis + peneliti lanjut) |
-| DAFTAR PUSTAKA | Hanya yang disitasi di isi |
-
-### 3. Hardening format (repo office-skripsi)
-
-Setelah konten selesai — JANGAN saat masih menulis:
-
-```bash
-cd /path/ke/office-skripsi
-cp Skripsi.docx Skripsi_backup.docx
-
-# Italic HANYA untuk istilah asing (audit dulu!)
-python3 scripts/italic-foreign.py audit Skripsi.docx --strip-other
-python3 scripts/italic-foreign.py apply Skripsi.docx --strip-other  # → Skripsi.italic.docx
-
-# Kalau heading diketik manual (1.1, 2.1.2): jadikan numbering asli
-unzip -q Skripsi.italic.docx -d work/unpacked/
-python3 scripts/merge-runs.py work/unpacked/word/document.xml
-python3 scripts/numbering.py work/unpacked/ analyze
-python3 scripts/numbering.py work/unpacked/ convert
-cd work/unpacked && zip -Xr ../Skripsi_final.docx . && cd ..
-python3 scripts/validate-docx.py work/Skripsi_final.docx
-```
-
-Aturan italic (PUEBI): istilah asing miring (`machine learning`, `framework`);
-**jangan** miringkan nama produk/library (`Laravel`, `MySQL`), akronim (`API`),
-heading, caption, Daftar Isi, Daftar Pustaka, potongan kode.
-
-### 4. Verifikasi = render, bukan klaim
-
-```bash
-soffice --headless --convert-to pdf Skripsi_final.docx
-pdftotext -layout Skripsi_final.pdf Skripsi_final.txt
-grep -n "BAB I\|DAFTAR PUSTAKA" Skripsi_final.txt
-```
+Aturan pokok: **Word dibuka sekali per sesi dan dibiarkan terbuka.** Jangan
+buka–tutup untuk tiap perubahan; setiap `save` Word menulis ulang XML dan bisa
+membuang atribut hasil pipeline.
 
 ---
 
-## Anti-patterns
+## 0. Sebelum menyentuh apa pun
+
+1. Kerjakan **salinan** (`skripsi_fix/`), jangan file asli (`skripsi/`).
+2. Baca dokumen dulu, jangan menebak: ekstrak teks + tabel + gaya.
+3. Cari template resmi kampus (mis. `Format PA 2026.docx`). Kalau tidak ada,
+   catat asumsi format di `docs/`.
+4. Tulis temuan di `docs/`, bukan di chat.
+
+---
+
+## 1. Tanya struktur, jangan mengarang
+
+Minimal sebelum menulis: judul, nama, NIM, prodi, tahun, penomoran bab,
+judul sub-bab, dan **data/angka yang harus muncul**.
+
+Aturan data:
+
+- Angka penelitian (jumlah responden, skor SUS, hasil uji) **hanya** dari
+  berkas bukti (laporan pengujian, log, screenshot). Tidak ada bukti → jangan
+  tulis.
+- Fitur yang diuji harus sama dengan yang ada di aplikasi dan laporan uji.
+- Klaim "layak/praktis/efektif" tanpa instrumen → hapus atau turunkan menjadi
+  deskripsi fungsional.
+
+---
+
+## 2. Selaraskan format ke template (sekali, di awal)
+
+Baca template, catat selisihnya, lalu terapkan lewat skrip — bukan manual.
+
+| Aspek | Aturan tipikal template PA | Cara cek |
+|-------|---------------------------|----------|
+| Paragraf isi | first line 1,00 cm; spasi 6/6 pt; 1,5 baris; justify | `Normal` |
+| Heading 1 (BAB) | indent 0; spasi 0/18 pt; tengah; bernomor | `Heading 1` |
+| Heading 2 | indent 0; spasi 0/0 pt; kiri | `Heading 2` |
+| Heading 3 | indent 0; **miring saja** (bukan tebal) | `Heading 3` |
+| Caption | spasi sesudah 0; 1,0 baris; tengah | `Caption` |
+| Nomor subbab | `4.1`, bukan `4.1.` | `w:lvlText` |
+| Sel tabel | padding atas/bawah 0, kiri/kanan 0,19 cm; baris judul diulang | `tblCellMar`, `tblHeader` |
+| Lebar tabel | ≤ lebar teks section (portrait 14 cm) | `tblGrid` |
+
+Pola skrip wajib: **backup bertanggal → dry run → `--apply` → laporan**.
+Contoh nama: `align_template.py`, `finalize.py`, `verify_format.py`.
+
+Hal yang sering terlewat:
+
+- Override langsung (`w:spacing`, `w:ind`, `w:jc`) pada paragraf heading/caption
+  harus dibersihkan, kalau tidak gaya template tidak berpengaruh.
+- Nomor subbab diambil dari `numbering.xml`; ubah `lvlText` pada abstractNum
+  yang benar-benar dipakai heading, jangan semua.
+- `DAFTAR PUSTAKA` harus ber-style Heading 1 + `numId 0` + page break, kalau
+  tidak ia hilang dari DAFTAR ISI.
+
+---
+
+## 3. Tulis isi secara realtime
+
+Word sudah terbuka; jangan menutupnya. Satu langkah kerja = satu blok:
+
+```bash
+VENV=/path/ke/repo/.venv-mcp/bin/python
+
+$VENV work/pipeline/realtime.py status
+$VENV work/pipeline/realtime.py open                 # buka sekali
+$VENV work/pipeline/realtime.py focus "Landasan Teori"
+$VENV work/pipeline/realtime.py tail                 # paragraf terakhir
+$VENV work/pipeline/realtime.py pdf work/render/cek.pdf
+```
+
+Di Python:
+
+```python
+from realtime import apply
+
+def tulis_bab4(doc):
+    p = doc.add_paragraph("4.1 Hasil Implementasi", style="Heading 2")
+    doc.add_paragraph("Isi paragraf ...", style="Normal")
+    return ["BAB IV: heading + 1 paragraf"]
+
+apply(tulis_bab4, anchor="4.1 Hasil Implementasi", label="bab4")
+```
+
+`apply` melakukan: backup → tulis file → `open revert true` → `execute find`
+ke jangkar (jendela Word bergulir ke situ) → aktifkan Word. Hasilnya terlihat
+seperti mengetik, tanpa tutup-buka.
+
+Jangan pakai AppleScript loop `paragraph i` untuk mencari teks: 2000+ paragraf
+membuat Word menggantung. Pakai `execute find` (native, ~1 detik).
+
+---
+
+## 4. Tabel lebar → section landscape
+
+Tabel 8 kolom tidak muat di 14 cm: judul kolom pecah jadi "N o", "Tahu n".
+Jangan perkecil font atau paksa 14 cm. Buat section landscape khusus tabel itu:
+
+1. `sectPr` portrait ditempel pada paragraf sebelum caption (menutup section
+   portrait).
+2. `sectPr` landscape ditempel pada paragraf sesudah tabel (menutup section
+   landscape).
+3. `pgSz w=16838 h=11906 orient=landscape`; tabel dilebarkan ke lebar teks
+   landscape (A4 − margin kiri − margin kanan = 22,7 cm).
+4. Hapus `pgNumType` pada section lanjutan supaya nomor halaman tidak
+   mengulang dari 1.
+
+Lebar tabel harus dihitung **per section**, bukan angka mati.
+
+---
+
+## 5. DAFTAR ISI: bake sekali, tanpa prompt
+
+Prompt "Update Table of Contents" muncul karena `w:updateFields=true`.
+Sekali per dokumen:
+
+```bash
+$VENV work/pipeline/bake_fields.py --mark      # tandai field dirty
+# buka Word sekali → tekan Return pada prompt → Word membangun ulang TOC
+# simpan dari Word
+$VENV work/pipeline/bake_fields.py --clear     # hapus updateFields + dirty
+$VENV work/pipeline/bake_fields.py --status    # pastikan bersih
+```
+
+Hasil akhir: entri DAFTAR ISI/GAMBAR/TABEL sudah terisi dan prompt tidak
+pernah muncul lagi. `do Visual Basic` dari AppleScript **tidak** berfungsi
+(error -2741) — jangan diandalkan.
+
+---
+
+## 6. Verifikasi: PASS/FAIL + render
+
+Dua lapis, keduanya wajib:
+
+```bash
+$VENV work/pipeline/verify_format.py --write    # 18 pemeriksaan, laporan .md
+$VENV work/pipeline/realtime.py pdf work/render/cek.pdf
+pdfinfo work/render/cek.pdf | grep Pages
+pdftotext -layout work/render/cek.pdf work/render/cek.txt
+pdftoppm -f 21 -l 21 -r 100 -png work/render/cek.pdf work/render/hal21
+```
+
+Baca gambarnya untuk halaman kritis: tabel lebar (landscape), caption,
+halaman transisi antar bab. Angka di laporan tidak menggantikan melihat hasil.
+
+Verifikasi dijalankan **setelah** Word menyimpan, karena Word membuang
+`tblCellMar` yang sama dengan default dan menghapus flag field.
+
+---
+
+## 7. Anti-pattern
 
 | ❌ Jangan | ✅ Lakukan |
 |-----------|-----------|
-| Mengarang data/angka penelitian | Minta data ke penulis, tandai placeholder `[DATA]` |
-| Miringkan seluruh kalimat berisi 1 istilah asing | `italic-foreign.py --strip-other` |
-| Italic di heading | Biarkan tegak — bocor ke Daftar Isi |
-| Format manual sebelum konten selesai | Konten dulu, hardening belakangan |
-| Klaim "sesuai pedoman" tanpa file pedoman | Minta PDF pedoman, catat asumsi |
+| Mengarang data, angka, sitasi, screenshot | Minta bukti; tandai `[DATA]` dan laporkan |
+| Buka–tutup Word tiap perubahan | `open ... revert true`, satu sesi |
+| Kirim 40 paragraf satu per satu via AppleScript | Satu blok per `apply` |
+| Loop 2000 paragraf untuk cari teks | `execute find` |
+| Paksa tabel 8 kolom ke 14 cm | Section landscape |
+| Biarkan `updateFields` menyala | Bake lalu `--clear` |
+| Klaim "sudah sesuai pedoman" tanpa cek | `verify_format.py` + render |
+| Ubah file asli | Kerjakan salinan, backup bertanggal |

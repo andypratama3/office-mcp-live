@@ -1,7 +1,7 @@
 # Office-Word-MCP-Server
 
 > Fork aktif dengan tambahan: **live-edit Word (macOS)**, **`smart_write.py`**
-> (satu pintu tulis otomatis live/file), dan **skills skripsi + jurnal**.
+> (satu pintu tulis live tanpa reload), dan **skills skripsi + jurnal**.
 > Upstream asli: [GongRzhe/Office-Word-MCP-Server](https://github.com/gongrzhe/office-word-mcp-server) (diarsipkan).
 
 ## Mulai Cepat (5 menit, macOS / Linux)
@@ -15,7 +15,7 @@ bash install.sh          # venv + dependensi + daftar MCP + pasang skills (idemp
 Lalu **restart OpenCode**, dan tes:
 
 ```bash
-.venv-mcp/bin/python smart_write.py append ~/Downloads/Doc1.docx "Halo live" --watch
+.venv-mcp/bin/python smart_write.py append "Halo live" --after "Judul Dokumen"
 ```
 
 Windows: pakai Git Bash/WSL, atau pasang manual (Python ≥ 3.11 → `pip install

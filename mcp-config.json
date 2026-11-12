@@ -1,12 +1,12 @@
 {
   "mcpServers": {
     "word-document-server": {
-      "command": "/Users/gongzhe/GitRepos/Office-Word-MCP-Server/.venv/bin/python",
+      "command": "/Users/andypratama3/Development/Key/skripsi_key/office-mcp-live/.venv-mcp/bin/python",
       "args": [
-        "/Users/gongzhe/GitRepos/Office-Word-MCP-Server/word_mcp_server.py"
+        "/Users/andypratama3/Development/Key/skripsi_key/office-mcp-live/word_mcp_server.py"
       ],
       "env": {
-        "PYTHONPATH": "/Users/gongzhe/GitRepos/Office-Word-MCP-Server",
+        "PYTHONPATH": "/Users/andypratama3/Development/Key/skripsi_key/office-mcp-live",
         "MCP_TRANSPORT": "stdio"
       }
     }
