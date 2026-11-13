@@ -72,12 +72,15 @@ EOF
 
 echo "==> [4/4] Pasang skills..."
 mkdir -p "$SKILLS_DIR"
-for skill in office-word-mcp skripsi-writing jurnal-writing docx-metadata-clean; do
+for skill in office-word-mcp skripsi-writing jurnal-writing docx-metadata-clean parafrase-sitasi; do
   src="$REPO_DIR/skills/$skill/SKILL.md"
   dest="$SKILLS_DIR/$skill"
   if [ -f "$src" ]; then
     mkdir -p "$dest"
     ln -sf "$src" "$dest/SKILL.md"
+    if [ -d "$REPO_DIR/skills/$skill/scripts" ]; then
+      ln -sfn "$REPO_DIR/skills/$skill/scripts" "$dest/scripts"
+    fi
     echo "    skill '$skill' -> $dest/SKILL.md"
   fi
 done

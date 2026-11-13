@@ -1,7 +1,7 @@
 # Office-Word-MCP-Server
 
 > Fork aktif dengan tambahan: **live-edit Word (macOS)**, **`smart_write.py`**
-> (satu pintu tulis live tanpa reload), dan **skills skripsi + jurnal + pembersih metadata**.
+> (satu pintu tulis live tanpa reload), dan **skills skripsi + jurnal + higiene metadata + parafrase/sitasi**.
 > Upstream asli: [GongRzhe/Office-Word-MCP-Server](https://github.com/gongrzhe/office-word-mcp-server) (diarsipkan).
 
 ## Mulai Cepat (5 menit, macOS / Linux)
@@ -28,6 +28,7 @@ daftarkan MCP sesuai `install.sh` langkah 3).
 | Menulis skripsi (BAB I–V) | `skills/skripsi-writing/SKILL.md` |
 | Menulis artikel jurnal (IMRAD) | `skills/jurnal-writing/SKILL.md` |
 | Bersihkan metadata/jejak AI + isi author dari device | `skills/docx-metadata-clean/SKILL.md` |
+| Turunkan kemiripan (Turnitin) secara sah: parafrase + sitasi | `skills/parafrase-sitasi/SKILL.md` |
 | Rapikan italic istilah asing (repo pendamping) | [office-skripsi](https://github.com/andypratama3/office-skripsi) |
 | Berkontribusi | `CONTRIBUTING.md` |
 
